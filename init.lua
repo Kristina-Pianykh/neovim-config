@@ -1,14 +1,9 @@
--- append current directory to package.path global variable
--- so that lua can find the plugins
-cwd = vim.fn.stdpath("config") .. vim.fn.getcwd()
-package.path = package.path .. ";" .. cwd .. "/lua/?.lua"
-
 require 'keymaps'
 require 'lazy-bootstrap'
 
 require("lazy").setup({
-	"psliwka/vim-smoothie",
-	"tomtom/tcomment_vim",
+  "psliwka/vim-smoothie",
+  "tomtom/tcomment_vim",
   -- syntax highliting and indentation support
   -- "sheerun/vim-polyglot",
   require 'plugins/nightfox',
