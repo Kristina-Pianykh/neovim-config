@@ -12,7 +12,8 @@ require("lazy").setup({
   require 'plugins/lualine',
   require 'plugins/copilot',
   require 'plugins/telescope',
-  require 'plugins/tree-sitter'
+  require 'plugins/tree-sitter',
+  require 'plugins/lsp'
 },
 {
   lockfile = vim.fn.stdpath("config") .. "/lazy-lock.json", -- lockfile generated after running update.
