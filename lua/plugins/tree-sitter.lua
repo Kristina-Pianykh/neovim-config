@@ -3,7 +3,7 @@
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
     opts = {
-      ensure_installed = {'c', 'lua', 'vim', 'vimdoc', 'query' },
+      ensure_installed = {'c', 'lua', 'vim', 'python' },
       -- Autoinstall languages that are not installed
       auto_install = false,
       highlight = {
