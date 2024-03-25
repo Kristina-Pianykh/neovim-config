@@ -14,6 +14,7 @@ local plugins = {
   require 'plugins/copilot',
   require 'plugins/telescope',
   require 'plugins/lsp',
+  require 'plugins/harpoon',
 }
 
 local opts = {
