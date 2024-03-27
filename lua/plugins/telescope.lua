@@ -57,6 +57,9 @@ return {
         pickers = {
           find_files = {
             find_command = { "rg", "--files", "--ignore", "-g", "!.git", "--hidden" },
+          },
+          buffers = {
+            initial_mode = 'normal',
           }
         },
         extensions = {
