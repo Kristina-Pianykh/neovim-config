@@ -1,5 +1,5 @@
 return {
- {
+	{
 		"EdenEast/nightfox.nvim",
 		config = function()
 			require("nightfox").setup({
@@ -16,8 +16,8 @@ return {
 						variables = "NONE",
 						conditionals = "NONE",
 						virtual_text = "NONE",
-					}
-				}
+					},
+				},
 			})
 			vim.cmd("colorscheme nordfox")
 		end,
