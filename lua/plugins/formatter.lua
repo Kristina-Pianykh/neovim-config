@@ -25,6 +25,9 @@ return {
 					terraform = {
 						require("formatter.filetypes.terraform").terraformfmt,
 					},
+					nix = {
+						require("formatter.filetypes.nix").alejandra,
+					},
 					-- Use the special "*" filetype for defining formatter configurations on
 					-- any filetype
 					["*"] = {
