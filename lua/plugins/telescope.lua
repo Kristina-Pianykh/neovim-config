@@ -61,6 +61,9 @@ return {
 					buffers = {
 						initial_mode = "normal",
 					},
+					command_history = {
+						initial_mode = "normal",
+					},
 				},
 				extensions = {
 					["ui-select"] = {
