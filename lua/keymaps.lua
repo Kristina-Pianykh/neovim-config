@@ -14,6 +14,7 @@ vim.opt.mouse = "a"
 vim.opt.hlsearch = true
 vim.keymap.set("n", "<Esc>", ":nohlsearch<CR>", { silent = true })
 vim.opt.clipboard:append({ "unnamedplus" })
+vim.keymap.set("n", "<leader>sc", "q:")
 
 -- use 2 whitespaces for indentation instead of tabs
 vim.opt.expandtab = true
