@@ -44,19 +44,35 @@ vim.keymap.set("n", "<Space>k", "<C-w>k", { noremap = true })
 vim.keymap.set("n", "<Space>l", "<C-w>l", { noremap = true })
 
 -- Diagnostic keymaps
--- TODO: remap this section
-vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "Go to previous [D]iagnostic message" }) --TODO: fix telescope file search
-vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "Go to next [D]iagnostic message" })
 -- vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, { desc = "Show diagnostic [E]rror messages" })
 -- vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostic [Q]uickfix list" })
 
--- Highlight when yanking (copying) text
---  Try it with `yap` in normal mode
---  See `:help vim.highlight.on_yank()`
 vim.api.nvim_create_autocmd("TextYankPost", {
 	desc = "Highlight when yanking (copnightfox-nvim;ing) text",
 	group = vim.api.nvim_create_augroup("kickstart-highlight-yank", { clear = true }),
 	callback = function()
 		vim.highlight.on_yank()
 	end,
+})
+
+vim.api.nvim_create_autocmd("LspAttach", {
+	desc = "Define LSP specific keymaps",
+	group = vim.api.nvim_create_augroup("lsp", { clear = true }),
+	callback = function(args)
+		local opts = { buffer = args.buf }
+		vim.keymap.set("n", "<leader>rn", function()
+			vim.lsp.buf.rename()
+		end, opts)
+		vim.keymap.set("n", "[d", function()
+			vim.diagnostic.goto_next()
+		end, opts)
+		vim.keymap.set("n", "]d", function()
+			vim.diagnostic.goto_prev()
+		end, opts)
+	end,
+})
+
+vim.api.nvim_create_autocmd("BufWritePre", {
+	group = vim.api.nvim_create_augroup("strip_whitespaces", { clear = true }),
+	command = ":%s/s+$//e",
 })
