@@ -28,6 +28,13 @@ vim.opt.laststatus = 3
 vim.keymap.set("n", "mo", "o<Esc>k")
 vim.keymap.set("n", "mO", "O<Esc>j")
 
+-- motions when a line wraps
+vim.keymap.set("n", "j", "gj")
+vim.keymap.set("n", "k", "gk")
+vim.keymap.set("n", "$", "g$")
+vim.keymap.set("n", "^", "g^")
+vim.keymap.set("n", "0", "g0")
+
 -- split window navigation
 vim.keymap.set("n", "<Space>h", "<C-w>h", { noremap = true })
 vim.keymap.set("n", "<Space>j", "<C-w>j", { noremap = true })
