@@ -12,6 +12,7 @@ vim.opt.relativenumber = true
 vim.opt.pumheight = 10
 vim.opt.mouse = "a"
 vim.opt.hlsearch = true
+vim.keymap.set("n", "<Esc>", ":nohlsearch<CR>", { silent = true })
 vim.opt.clipboard:append({ "unnamedplus" })
 
 -- use 2 whitespaces for indentation instead of tabs
