@@ -1,3 +1,12 @@
+local java_handlers = {
+	["client/registerCapability"] = function(err, result, ctx, config)
+		local registration = {
+			registrations = { result },
+		}
+		return vim.lsp.handlers["client/registerCapability"](err, registration, ctx, config)
+	end,
+}
+
 return {
 	--- Uncomment the two plugins below if you want to manage the language servers from neovim
 	-- {'williamboman/mason.nvim'},
@@ -29,6 +38,10 @@ return {
 			filetypes = { "terraform" }, -- TODO: workaround to disable lsp support for *.tfvars files. Might be fixed in next nvim release https://github.com/hashicorp/terraform-ls/issues/1464
 		})
 		require("lspconfig").tflint.setup({})
+		require("lspconfig").java_language_server.setup({
+			cmd = { "java-language-server" },
+			handlers = java_handlers,
+		})
 
 		lsp_zero.preset("recommended")
 
