@@ -3,7 +3,7 @@ return {
 		"mhartington/formatter.nvim",
 		config = function()
 			-- Utilities for creating configurations
-			-- local util = require "formatter.util"
+			local util = require("formatter.util")
 
 			-- Provides the Format, FormatWrite, FormatLock, and FormatWriteLock commands
 			require("formatter").setup({
@@ -27,6 +27,18 @@ return {
 					},
 					nix = {
 						require("formatter.filetypes.nix").alejandra,
+					},
+					java = {
+						function()
+							return {
+								exe = "google-java-format",
+								args = {
+									util.escape_path(util.get_current_buffer_file_path()),
+									"--replace",
+								},
+								stdin = true,
+							}
+						end,
 					},
 					-- Use the special "*" filetype for defining formatter configurations on
 					-- any filetype
