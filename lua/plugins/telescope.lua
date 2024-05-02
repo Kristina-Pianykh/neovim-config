@@ -54,6 +54,15 @@ return {
         --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
         --   },
         -- },
+        defaults = {
+          file_ignore_patterns = {
+            ".git",
+            "%.o",
+            "%.class",
+            "%.out",
+            "%.a",
+          },
+        },
         pickers = {
           find_files = {
             find_command = {
