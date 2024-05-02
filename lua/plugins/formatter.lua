@@ -40,6 +40,16 @@ return {
               }
             end,
           },
+          c = {
+            function()
+              return {
+                exe = "astyle",
+                args = { "--indent=spaces=4", "--mode=c" },
+                stdin = true,
+              }
+            end,
+            -- require("formatter.filetypes.c").astyle,
+          },
           -- Use the special "*" filetype for defining formatter configurations on
           -- any filetype
           ["*"] = {

@@ -51,5 +51,14 @@ return {
     lsp_zero.preset("recommended")
 
     lsp_zero.setup_servers({ "pyright" })
+
+    -- require("lspconfig").clangd.setup({})
+    require("lspconfig").ccls.setup({
+      init_options = {
+        cache = {
+          directory = ".ccls-cache",
+        },
+      },
+    })
   end,
 }
