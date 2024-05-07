@@ -55,8 +55,10 @@ return {
         --   },
         -- },
         defaults = {
+          -- People say it's slow
+          -- rather use rg?
+          -- https://github.com/nvim-telescope/telescope.nvim/issues/522#issuecomment-777384452
           file_ignore_patterns = {
-            ".git",
             "%.o",
             "%.class",
             "%.out",
@@ -67,11 +69,26 @@ return {
           find_files = {
             find_command = {
               "rg",
-              "--files",
-              "--ignore",
-              "-g",
-              "!.git",
+              "--no-ignore",
               "--hidden",
+              "-g",
+              "!**/.git/**",
+              "-g",
+              "!**/.venv",
+              "-g",
+              "!**/dist",
+              "-g",
+              "!**/build",
+              "-g",
+              "!**/target",
+              "-g",
+              "!**/*cache*",
+              "-g",
+              "!**/__pycache__",
+              "-g",
+              "!**/*.pyc",
+              "--unrestricted",
+              "--files",
             },
           },
           buffers = {
