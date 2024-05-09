@@ -7,7 +7,8 @@ local plugins = {
   require("plugins/tree-sitter"),
   -- syntax highliting and indentation support
   -- "sheerun/vim-polyglot",
-  require("plugins/nightfox"),
+  -- require("plugins/nightfox"),
+  require("plugins/rosepine"),
   require("plugins/nvim-surround"),
   require("plugins/nvim-autopairs"),
   require("plugins/lualine"),

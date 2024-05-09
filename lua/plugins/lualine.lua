@@ -6,7 +6,7 @@ return {
     commit = "2248ef254d0a1488a72041cfb45ca9caada6d994",
     config = function()
       require("lualine").setup({
-        options = { theme = "nordfox" },
+        options = { theme = "rose-pine" },
       })
     end,
   },
