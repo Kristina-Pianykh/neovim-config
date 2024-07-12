@@ -1,5 +1,6 @@
 require("keymaps")
 require("lazy-bootstrap")
+require("plugins/databricks").setup()
 
 local plugins = {
   "psliwka/vim-smoothie",
