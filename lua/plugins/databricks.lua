@@ -9,6 +9,7 @@ end, { noremap = true })
 
 vim.g.databricks_profile = "adb-537208599094554"
 vim.g.databricks_cluster_id = "0503-152818-j2hhktid"
+vim.g.databricks_host = "https://adb-537208599094554.14.azuredatabricks.net"
 
 local function create_buffer()
   local buf = vim.api.nvim_create_buf(true, true)
@@ -119,11 +120,65 @@ function get_visual_selection()
   end
 end
 
+local function get_token(profile)
+  command = "databricks auth token -p "
+    .. profile
+    .. " | jq "
+    .. vim.fn.shellescape('.["access_token"]')
+  token = vim.fn.system(command)
+  -- print(token)
+  return token
+end
+
+local function parse_config(profile, config_path)
+  if config_path == nil then
+    config_path = vim.fn.getenv("HOME") .. "/.databrickscfg"
+  end
+  print(profile)
+
+  --TODO: validate that config_path exists if not handle
+  creds = { host = nil, token = nil, profile = nil }
+
+  for line in io.lines(config_path) do
+    -- print("[" .. profile .. "]")
+    if creds.profile ~= nil then
+      if string.starts(line, "host") then
+        local pattern = "https://%S+"
+        creds.host = string.match(line, pattern)
+        print(creds.host)
+        break
+        -- host_start = vim.fn.match(line, "https")
+        -- print(host_start)
+        -- host_end = vim.fn.match(line, "$")
+        -- print(host_end)
+      end
+    end
+    if line == "[" .. profile .. "]" then
+      creds.profile = profile
+    end
+  end
+
+  creds.token = get_token(profile)
+  print(creds.token)
+  return creds
+end
+
+function string.starts(String, Start)
+  return string.sub(String, 1, string.len(Start)) == Start
+end
+
 function main()
   local buf = vim.g.databricks_buf
   if buf == nil then
     buf = create_buffer()
   end
+
+  -- local token = get_token(vim.g.databricks_profile)
+  local creds = parse_config(vim.g.databricks_profile, nil)
+  for k, v in pairs(creds) do
+    print(k, v)
+  end
+
   lines = get_visual_selection()
   lines_size = table.getn(lines)
   write_visual_selection_to_buffer(buf, lines)
