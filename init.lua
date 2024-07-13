@@ -1,10 +1,10 @@
 require("keymaps")
 require("lazy-bootstrap")
-require("plugins/databricks").setup()
 
 local plugins = {
   "psliwka/vim-smoothie",
   "tomtom/tcomment_vim",
+  "rafcamlet/nvim-luapad",
   require("plugins/tree-sitter"),
   -- syntax highliting and indentation support
   -- "sheerun/vim-polyglot",
@@ -26,3 +26,4 @@ local opts = {
 }
 
 require("lazy").setup(plugins, opts)
+require("plugins/databricks").setup()
