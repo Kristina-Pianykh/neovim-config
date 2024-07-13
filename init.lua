@@ -5,6 +5,7 @@ local plugins = {
   "psliwka/vim-smoothie",
   "tomtom/tcomment_vim",
   "rafcamlet/nvim-luapad",
+  "nvim-lua/plenary.nvim",
   require("plugins/tree-sitter"),
   -- syntax highliting and indentation support
   -- "sheerun/vim-polyglot",
