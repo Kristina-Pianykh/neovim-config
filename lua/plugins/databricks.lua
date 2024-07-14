@@ -4,6 +4,12 @@ local wrapper_path = vim.fn.expand(vim.fn.expand("<sfile>:p:h"))
   .. "/lua/plugins/execute_code.py"
 local curl = require("plenary.curl")
 
+local CONTEXT_STATUS = {
+  running = "Running",
+  pending = "Pending",
+  error = "Error",
+}
+
 vim.keymap.set("v", "<leader>sp", function()
   -- write_to_buffer()
   main()
@@ -151,14 +157,6 @@ local function parse_config(profile, config_path)
       if string.starts(line, "host") then
         local tmp = vim.split(line, "https://")
         creds.host = tmp[table.getn(tmp)]
-        -- local pattern = "https://%S+"
-        -- local host_https = string.match(line, pattern)
-        -- creds.host = string.gsub(host_https, "^https://", "")
-        -- print(creds.host)
-        -- host_start = vim.fn.match(line, "https")
-        -- print(host_start)
-        -- host_end = vim.fn.match(line, "$")
-        -- print(host_end)
       end
     end
     if line == "[" .. profile .. "]" then
@@ -174,39 +172,24 @@ function string.starts(String, Start)
   return string.sub(String, 1, string.len(Start)) == Start
 end
 
-local function get_context_status(creds)
-  local f = io.open(curr_script_dir .. "/.execution_context", "r")
+function is_empty(arg)
+  return arg == nil or arg == ""
+end
+
+local function clear_context()
+  local path = curr_script_dir .. "/.execution_context"
+  local f = io.open(path, "r")
   if f == nil then
-    local context_id = create_execution_context(creds)
+    return
   else
-    local context_id = f:read("*all")
     f:close()
+    assert(os.remove(path))
   end
-
-  print(context_id)
-
-  local url = "https://" .. creds.host .. "/api/1.2/contexts/status"
-  local header = {
-    Authorization = "Bearer " .. creds.token,
-    accept = "application/json",
-    content_type = "application/json",
-  }
-  local data =
-    { clusterId = vim.g.databricks_cluster_id, contextId = context_id }
-
-  local args = {
-    headers = header,
-    body = vim.fn.json_encode(data),
-  }
-  local specs = { url, args }
-  print(vim.inspect(specs))
-
-  local response = curl.get(url, args)
-  local status = vim.fn.json_decode(response.body).status
-  -- if status ~= "Running"
 end
 
 local function create_execution_context(creds)
+  local context_id = nil
+
   local url = "https://" .. creds.host .. "/api/1.2/contexts/create"
   local header = {
     Authorization = "Bearer " .. creds.token,
@@ -219,35 +202,129 @@ local function create_execution_context(creds)
     headers = header,
     body = vim.fn.json_encode(data),
   }
-  -- local specs = { url, args }
+  local specs = { url, args }
+  print(vim.inspect(specs))
 
   local response = curl.post(url, args)
-  local context_id = vim.fn.json_decode(response.body).id
-  -- print(context_id)
+  local response_body = vim.fn.json_decode(response.body)
+  print(vim.inspect(response_body))
 
+  if response_body.error ~= nil or response.status ~= 200 then
+    print("Failed to create execution context")
+    if response_body.error ~= nil then
+      print(response_body.error)
+    end
+    return nil
+  end
+
+  context_id = response_body.id
   local f = assert(io.open(curr_script_dir .. "/.execution_context", "w"))
-  local t = f:write(context_id)
+  f:write(context_id)
   f:close()
 
   return context_id
 end
 
+local function get_context_status(creds)
+  local context_id = nil
+  local f = io.open(curr_script_dir .. "/.execution_context", "r")
+
+  if f == nil then
+    assert(create_execution_context(creds, 0) ~= nil)
+    return CONTEXT_STATUS.running
+  else
+    context_id = f:read("*all")
+    f:close()
+  end
+
+  assert(not is_empty(context_id), "context_id is not set") -- TODO: crash the module?
+  -- print(vim.inspect(creds))
+
+  local url = "https://"
+    .. creds.host
+    .. "/api/1.2/contexts/status"
+    .. "?clusterId="
+    .. vim.g.databricks_cluster_id
+    .. "&contextId="
+    .. context_id
+  local header = {
+    Authorization = "Bearer " .. creds.token,
+    accept = "application/json",
+    content_type = "application/json",
+  }
+
+  local args = {
+    headers = header,
+  }
+  local specs = { url, args }
+  print(vim.inspect(specs))
+
+  local response = curl.get(url, args)
+  local response_body = vim.fn.json_decode(response.body)
+
+  print(vim.inspect(response_body))
+  if response_body.error ~= nil or response.status ~= 200 then
+    print("Failed to get the status of the execution context")
+    if response_body.error ~= nil then
+      print(response_body.error)
+    end
+    return nil
+  end
+  local status = response_body.status
+  return status
+end
+
 function main()
+  local context_id = nil
+  local context_status = nil
   local buf = vim.g.databricks_buf
+
   if buf == nil then
     buf = create_buffer()
   end
 
   local creds = parse_config(vim.g.databricks_profile, nil)
-  -- for k, v in pairs(creds) do
-  --   print(k, v)
-  -- end
-  create_execution_context(creds)
-  lines = get_visual_selection()
-  lines_size = table.getn(lines)
-  write_visual_selection_to_buffer(buf, lines)
-  output = execute_code(buf)
-  write_output_to_buffer(buf, output, lines_size)
+
+  local f = io.open(curr_script_dir .. "/.execution_context", "r")
+  if f == nil then
+    context_id = create_execution_context(creds)
+    context_status = CONTEXT_STATUS.running
+
+    if is_empty(context_id) then
+      clear_context()
+      context_id = create_execution_context(creds)
+    end
+
+    assert(context_id ~= nil)
+  else
+    context_id = f:read("*all")
+    context_status = get_context_status(creds)
+    f:close()
+
+    if is_empty(context_status) then
+      return
+    end
+
+    if context_status ~= CONTEXT_STATUS.running then
+      if context_status == CONTEXT_STATUS.pending then
+        print("Execution context's status is pending. Try later...")
+        return -- TODO: how to handle this correct? stderr? exit(1)?
+      else
+        clear_context()
+        context_id = create_execution_context(creds)
+        assert(context_id ~= nil)
+        context_status = CONTEXT_STATUS.running
+      end
+    end
+  end
+  print(context_id)
+  print(context_status)
+
+  -- lines = get_visual_selection()
+  -- lines_size = table.getn(lines)
+  -- write_visual_selection_to_buffer(buf, lines)
+  -- output = execute_code(buf)
+  -- write_output_to_buffer(buf, output, lines_size)
 end
 
 local function setup()
