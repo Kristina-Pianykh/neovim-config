@@ -10,8 +10,16 @@ local CONTEXT_STATUS = {
   error = "Error",
 }
 
+local COMMAND_STATUS = {
+  running = "Running",
+  cancelled = "Cancelled",
+  cancelling = "Cancelling",
+  finished = "Finished",
+  queued = "Queued",
+  error = "Error",
+}
+
 vim.keymap.set("v", "<leader>sp", function()
-  -- write_to_buffer()
   main()
 end, { noremap = true })
 
@@ -32,37 +40,140 @@ local function clear_buffer(buf)
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, {})
 end
 
-function write_output_to_buffer(buf, output, start_line)
-  lines = vim.fn.split(output, "\n")
+local function contains(arr, val)
+  for _, v in ipairs(arr) do
+    if v == val then
+      return true
+    end
+  end
+  return false
+end
+
+local function write_output_to_buffer(buf, output_table, start_line)
+  local stringified = vim.fn.json_encode(output_table)
+  local lines = vim.fn.split(stringified, "\n")
+  table.insert(lines, 1, "Output:")
   table.insert(lines, 1, "")
-  -- lines = { output }
-  -- print(lines)
-  end_line = start_line + table.getn(lines)
+  local end_line = start_line + table.getn(lines)
   vim.api.nvim_buf_set_lines(buf, start_line, end_line, false, lines)
 end
 
-function write_visual_selection_to_buffer(buf, lines)
-  -- lines = get_visual_selection()
+local function write_visual_selection_to_buffer(buf, lines)
   clear_buffer(buf) -- for now: overwrite the buffer with every execution
-  -- print(table.getn(lines))
   vim.api.nvim_buf_set_lines(buf, 0, table.getn(lines), false, lines) -- misalighnment might cause problems here
 end
 
-function execute_code(buf)
-  lines_arr = get_visual_selection()
-  lines_str = table.concat(lines_arr)
-  command = "poetry run python3 "
-    .. vim.fn.shellescape(wrapper_path)
-    .. " --code "
-    .. vim.fn.shellescape(lines_str)
-    .. " --profile "
-    .. vim.g.databricks_profile
-    .. " --cluster_id "
-    .. vim.g.databricks_cluster_id
-  -- print(command)
-  output = vim.fn.system(command)
-  -- print(output)
-  return output
+local function get_command_status(context_id, command_id)
+  local url = "https://" .. creds.host .. "/api/1.2/commands/status"
+  local header = {
+    Authorization = "Bearer " .. creds.token,
+    accept = "application/json",
+  }
+  local query = {
+    clusterId = vim.g.databricks_cluster_id,
+    contextId = context_id,
+    commandId = command_id,
+  }
+
+  local args = {
+    headers = header,
+    query = query,
+  }
+  print(vim.inspect({ url, args }))
+
+  local response = curl.get(url, args)
+  local response_body = vim.fn.json_decode(response.body)
+  print(vim.inspect(response_body))
+  if response.status == 200 then
+    return response_body
+  else
+    error("Failed to get status of the command with id: " .. command_id)
+  end
+end
+
+local function wait_command_status_until_finished_or_error(
+  context_id,
+  command_id
+)
+  local now = os.time()
+  local timeout = 60 * 20 -- 20 seconds TODO: make configurable
+  local deadline = now + timeout
+  local target_states = { COMMAND_STATUS.finished, COMMAND_STATUS.error }
+  local failed_states = { COMMAND_STATUS.cancelled, COMMAND_STATUS.cancelling }
+
+  local attempt = 1
+  -- local sleep = attempt * 1000 -- in millies
+  local sleep = attempt
+
+  while os.time() < deadline do
+    local ok, res = pcall(get_command_status, context_id, command_id)
+
+    if not ok then
+      error(res)
+    end
+
+    local response_body = res
+    local status = response_body.status
+
+    if contains(target_states, status) then
+      print("Execution reached target state: " .. status)
+      return response_body
+    elseif contains(failed_states, status) then
+      error("failed to reach Finished or Error, got " .. status)
+    else
+      os.execute("sleep " .. tonumber(sleep)) -- TODO: replace when wrapping into async
+    end
+
+    attempt = attempt + 1
+    -- if sleep < 10 * 1000 then
+    if sleep < 10 then -- sleep no longer than 10s
+      sleep = attempt
+    end
+  end
+  error("Timed out after " .. timeout .. "s.")
+end
+
+local function execute_code(creds, context_id, command)
+  local url = "https://" .. creds.host .. "/api/1.2/commands/execute"
+  local header = {
+    Authorization = "Bearer " .. creds.token,
+    accept = "application/json",
+    content_type = "application/json",
+  }
+  local data = {
+    clusterId = vim.g.databricks_cluster_id,
+    language = "python",
+    contextId = context_id,
+    command = command,
+  }
+
+  local args = {
+    headers = header,
+    body = vim.fn.json_encode(data),
+  }
+  print(vim.inspect({ url, args }))
+
+  local response = curl.post(url, args)
+  local response_body = vim.fn.json_decode(response.body)
+  print(vim.inspect(response_body))
+
+  if response.status ~= 200 then
+    error(
+      "request failed with status "
+        .. response.status
+        .. ". Error: "
+        .. response_body.error
+    )
+  end
+  local command_id = response_body.id
+  local ok, res =
+    pcall(wait_command_status_until_finished_or_error, context_id, command_id)
+
+  if not ok then
+    error(res)
+  else
+    return res.results
+  end
 end
 
 -- function copied from https://www.reddit.com/r/neovim/comments/1b1sv3a/function_to_get_visually_selected_text/
@@ -202,19 +313,19 @@ local function create_execution_context(creds)
     headers = header,
     body = vim.fn.json_encode(data),
   }
-  local specs = { url, args }
-  print(vim.inspect(specs))
+  print(vim.inspect({ url, args }))
 
   local response = curl.post(url, args)
   local response_body = vim.fn.json_decode(response.body)
   print(vim.inspect(response_body))
 
-  if response_body.error ~= nil or response.status ~= 200 then
-    print("Failed to create execution context")
-    if response_body.error ~= nil then
-      print(response_body.error)
-    end
-    return nil
+  if response.status ~= 200 then
+    error(
+      "request failed with status "
+        .. response.status
+        .. ". Error: "
+        .. response_body.error
+    )
   end
 
   context_id = response_body.id
@@ -222,24 +333,11 @@ local function create_execution_context(creds)
   f:write(context_id)
   f:close()
 
+  print(context_id)
   return context_id
 end
 
-local function get_context_status(creds)
-  local context_id = nil
-  local f = io.open(curr_script_dir .. "/.execution_context", "r")
-
-  if f == nil then
-    assert(create_execution_context(creds, 0) ~= nil)
-    return CONTEXT_STATUS.running
-  else
-    context_id = f:read("*all")
-    f:close()
-  end
-
-  assert(not is_empty(context_id), "context_id is not set") -- TODO: crash the module?
-  -- print(vim.inspect(creds))
-
+local function get_context_status(creds, context_id)
   local url = "https://"
     .. creds.host
     .. "/api/1.2/contexts/status"
@@ -256,22 +354,20 @@ local function get_context_status(creds)
   local args = {
     headers = header,
   }
-  local specs = { url, args }
-  print(vim.inspect(specs))
 
+  print(vim.inspect({ url, args }))
   local response = curl.get(url, args)
   local response_body = vim.fn.json_decode(response.body)
-
   print(vim.inspect(response_body))
-  if response_body.error ~= nil or response.status ~= 200 then
-    print("Failed to get the status of the execution context")
-    if response_body.error ~= nil then
-      print(response_body.error)
-    end
-    return nil
+
+  if response.status ~= 200 then
+    error(
+      "Failed to get the status of the execution context. Error: "
+        .. response_body.error
+    )
   end
-  local status = response_body.status
-  return status
+
+  return response_body.status
 end
 
 function main()
@@ -287,44 +383,67 @@ function main()
 
   local f = io.open(curr_script_dir .. "/.execution_context", "r")
   if f == nil then
-    context_id = create_execution_context(creds)
-    context_status = CONTEXT_STATUS.running
+    local ok, res = pcall(create_execution_context, creds)
 
-    if is_empty(context_id) then
-      clear_context()
-      context_id = create_execution_context(creds)
+    if ok then
+      context_id = res
+      context_status = CONTEXT_STATUS.running
+    else
+      error(res)
     end
 
-    assert(context_id ~= nil)
+    assert(context_id)
   else
     context_id = f:read("*all")
-    context_status = get_context_status(creds)
     f:close()
+    local ok, res = pcall(get_context_status, creds, context_id)
 
-    if is_empty(context_status) then
-      return
+    if ok then
+      context_status = res
+    else
+      error(res)
     end
+
+    assert(context_status)
 
     if context_status ~= CONTEXT_STATUS.running then
       if context_status == CONTEXT_STATUS.pending then
-        print("Execution context's status is pending. Try later...")
-        return -- TODO: how to handle this correct? stderr? exit(1)?
+        error("Execution context's status is pending. Try later...")
       else
         clear_context()
-        context_id = create_execution_context(creds)
-        assert(context_id ~= nil)
-        context_status = CONTEXT_STATUS.running
+        local ok, res = create_execution_context(creds)
+
+        if ok then
+          context_id = res
+          context_status = CONTEXT_STATUS.running
+        else
+          error(res)
+        end
       end
     end
   end
   print(context_id)
   print(context_status)
 
-  -- lines = get_visual_selection()
-  -- lines_size = table.getn(lines)
-  -- write_visual_selection_to_buffer(buf, lines)
-  -- output = execute_code(buf)
-  -- write_output_to_buffer(buf, output, lines_size)
+  local lines = get_visual_selection()
+  local command = table.concat(lines)
+
+  write_visual_selection_to_buffer(buf, lines)
+
+  local ok, res = pcall(execute_code, creds, context_id, command)
+
+  if not ok then
+    error(res)
+  else
+    assert(type(res) == "table")
+
+    if res.data ~= nil then
+      print("Output: " .. res.data)
+    end
+
+    write_output_to_buffer(buf, res, table.getn(lines))
+    return res
+  end
 end
 
 local function setup()
