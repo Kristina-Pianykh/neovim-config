@@ -199,29 +199,6 @@ function get_visual_selection()
     end
   end
 
-  -- regular visual mode
-  if vim.fn.mode() == "v" then
-    if srow < erow or (srow == erow and scol <= ecol) then
-      return vim.api.nvim_buf_get_text(
-        0,
-        srow - 1,
-        scol - 1,
-        erow - 1,
-        ecol,
-        {}
-      )
-    else
-      return vim.api.nvim_buf_get_text(
-        0,
-        erow - 1,
-        ecol - 1,
-        srow - 1,
-        scol,
-        {}
-      )
-    end
-  end
-
   -- visual block mode
   if vim.fn.mode() == "\22" then
     local lines = {}
@@ -461,7 +438,8 @@ function main()
   print(context_id)
   print(context_status)
 
-  local lines = get_visual_selection() --TODO: make correction for the current cursor position
+  local lines = get_visual_selection()
+  assert(lines)
   local command = table.concat(lines, "\n")
 
   write_visual_selection_to_buffer(buf, lines)
