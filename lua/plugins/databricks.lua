@@ -461,8 +461,8 @@ function main()
   print(context_id)
   print(context_status)
 
-  local lines = get_visual_selection()
-  local command = table.concat(lines)
+  local lines = get_visual_selection() --TODO: make correction for the current cursor position
+  local command = table.concat(lines, "\n")
 
   write_visual_selection_to_buffer(buf, lines)
 
