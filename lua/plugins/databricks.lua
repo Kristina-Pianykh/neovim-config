@@ -19,8 +19,17 @@ local COMMAND_STATUS = {
   error = "Error",
 }
 
-vim.keymap.set("v", "<leader>sp", function()
-  main()
+vim.keymap.set(
+  "v",
+  "<leader>sp",
+  function() --TODO: wrap plugin into module and pass M.main()
+    main()
+  end,
+  { noremap = true }
+)
+
+vim.keymap.set("n", "<leader>cc", function()
+  clear_context()
 end, { noremap = true })
 
 vim.g.databricks_profile = "adb-537208599094554"
@@ -287,15 +296,41 @@ function is_empty(arg)
   return arg == nil or arg == ""
 end
 
-local function clear_context()
+function clear_context()
   local path = curr_script_dir .. "/.execution_context"
+  local context_id = nil
+
   local f = io.open(path, "r")
   if f == nil then
     return
   else
+    context_id = f:read("*all")
     f:close()
-    assert(os.remove(path))
   end
+
+  assert(context_id)
+
+  local url = "https://" .. creds.host .. "/api/1.2/contexts/destroy"
+  local header = {
+    Authorization = "Bearer " .. creds.token,
+    accept = "application/json",
+    content_type = "application/json",
+  }
+  local data =
+    { clusterId = vim.g.databricks_cluster_id, contextId = context_id }
+
+  local args = {
+    headers = header,
+    body = vim.fn.json_encode(data),
+  }
+  print(vim.inspect({ url, args }))
+
+  local response = curl.post(url, args)
+  print(vim.inspect(response))
+  local response_body = vim.fn.json_decode(response.body)
+  print(vim.inspect(response_body))
+
+  os.remove(path)
 end
 
 local function create_execution_context(creds)
@@ -357,6 +392,7 @@ local function get_context_status(creds, context_id)
 
   print(vim.inspect({ url, args }))
   local response = curl.get(url, args)
+  print(vim.inspect(response))
   local response_body = vim.fn.json_decode(response.body)
   print(vim.inspect(response_body))
 
