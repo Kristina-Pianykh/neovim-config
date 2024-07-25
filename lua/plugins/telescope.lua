@@ -35,6 +35,12 @@ return {
             "%.out",
             "%.a",
           },
+          layout_config = {
+            preview_width = 0.6,
+          },
+          path_display = {
+            "truncate",
+          },
         },
         pickers = {
           find_files = {
@@ -129,7 +135,7 @@ return {
       )
       vim.keymap.set(
         "n",
-        "<leader>cc",
+        "<leader>ch",
         builtin.git_commits,
         { desc = "[S]earch [R]egisters" }
       )

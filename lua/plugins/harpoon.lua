@@ -2,9 +2,13 @@ return {
   {
     "ThePrimeagen/harpoon", -- lets goooo
     branch = "harpoon2",
-    dependencies = { "nvim-lua/plenary.nvim" },
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "nvim-telescope/telescope.nvim",
+    },
     config = function()
       local harpoon = require("harpoon")
+      local conf = require("telescope.config").values
 
       harpoon:setup({
         settings = {
@@ -12,11 +16,34 @@ return {
         },
       })
 
+      -- basic telescope configuration
+      local function toggle_telescope(harpoon_files)
+        local file_paths = {}
+        for _, item in ipairs(harpoon_files.items) do
+          table.insert(file_paths, item.value)
+        end
+
+        require("telescope.pickers")
+          .new({}, {
+            prompt_title = "Harpoon",
+            initial_mode = "normal",
+            finder = require("telescope.finders").new_table({
+              results = file_paths,
+            }),
+            previewer = conf.file_previewer({}),
+            sorter = conf.generic_sorter({}),
+          })
+          :find()
+      end
+
       vim.keymap.set("n", "<leader>q", function()
         harpoon:list():append()
       end)
+      -- vim.keymap.set("n", "<leader>e", function()
+      --   harpoon.ui:toggle_quick_menu(harpoon:list())
+      -- end)
       vim.keymap.set("n", "<leader>e", function()
-        harpoon.ui:toggle_quick_menu(harpoon:list())
+        toggle_telescope(harpoon:list())
       end)
 
       vim.keymap.set("n", "<leader>1", function()
@@ -43,9 +70,9 @@ return {
       vim.keymap.set("n", "<leader>f", function()
         harpoon:list():prev(navigation_opts)
       end)
-      vim.keymap.set("n", "<leader>p", function()
-        harpoon:list():next(navigation_opts)
-      end)
+      -- vim.keymap.set("n", "<leader>p", function()
+      --   harpoon:list():next(navigation_opts)
+      -- end)
     end,
   },
 }
