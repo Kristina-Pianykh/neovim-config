@@ -424,7 +424,7 @@ function main()
         error("Execution context's status is pending. Try later...")
       else
         clear_context()
-        local ok, res = create_execution_context(creds)
+        local ok, res = pcall(create_execution_context, creds)
 
         if ok then
           context_id = res
