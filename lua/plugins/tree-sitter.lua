@@ -11,6 +11,7 @@ return {
         "hcl",
         "terraform",
         "java",
+        "yaml",
       },
       -- Autoinstall languages that are not installed
       auto_install = false,
