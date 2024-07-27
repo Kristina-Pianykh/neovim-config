@@ -3,8 +3,6 @@ local buffer_utils = require("databricks.buffer")
 local config = require("databricks.buffer")
 local api = require("databricks.api")
 
-local databricks = {}
-
 function main()
   local context_id = nil
   local context_status = nil

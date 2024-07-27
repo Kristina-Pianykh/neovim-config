@@ -2,13 +2,15 @@ local curl = require("plenary.curl")
 local string_utils = require("databricks.strings")
 local curr_script_dir = vim.fn.expand(vim.fn.expand("%:p:h"))
 
-local CONTEXT_STATUS = {
+local M = {}
+
+M.CONTEXT_STATUS = {
   running = "Running",
   pending = "Pending",
   error = "Error",
 }
 
-local COMMAND_STATUS = {
+M.COMMAND_STATUS = {
   running = "Running",
   cancelled = "Cancelled",
   cancelling = "Cancelling",
@@ -17,7 +19,7 @@ local COMMAND_STATUS = {
   error = "Error",
 }
 
-local function get_command_status(context_id, command_id)
+M.get_command_status = function(context_id, command_id)
   local url = "https://" .. creds.host .. "/api/1.2/commands/status"
   local header = {
     Authorization = "Bearer " .. creds.token,
@@ -45,10 +47,7 @@ local function get_command_status(context_id, command_id)
   end
 end
 
-local function wait_command_status_until_finished_or_error(
-  context_id,
-  command_id
-)
+M.wait_command_status_until_finished_or_error = function(context_id, command_id)
   local now = os.time()
   local timeout = 60 * 20 -- 20 seconds TODO: make configurable
   local deadline = now + timeout
@@ -87,7 +86,7 @@ local function wait_command_status_until_finished_or_error(
   error("Timed out after " .. timeout .. "s.")
 end
 
-local function execute_code(creds, context_id, command)
+M.execute_code = function(creds, context_id, command)
   local url = "https://" .. creds.host .. "/api/1.2/commands/execute"
   local header = {
     Authorization = "Bearer " .. creds.token,
@@ -130,7 +129,7 @@ local function execute_code(creds, context_id, command)
   end
 end
 
-local function clear_context()
+M.clear_context = function()
   local path = curr_script_dir .. "/.execution_context"
   local context_id = nil
 
@@ -167,7 +166,7 @@ local function clear_context()
   os.remove(path)
 end
 
-local function create_execution_context(creds)
+M.create_execution_context = function(creds)
   local context_id = nil
 
   local url = "https://" .. creds.host .. "/api/1.2/contexts/create"
@@ -206,7 +205,7 @@ local function create_execution_context(creds)
   return context_id
 end
 
-local function get_context_status(creds, context_id)
+M.get_context_status = function(creds, context_id)
   local url = "https://"
     .. creds.host
     .. "/api/1.2/contexts/status"
@@ -239,3 +238,5 @@ local function get_context_status(creds, context_id)
 
   return response_body.status
 end
+
+return M

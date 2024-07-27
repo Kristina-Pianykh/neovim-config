@@ -1,4 +1,6 @@
-local function contains(arr, val)
+local M = {}
+
+M.contains = function(arr, val)
   for _, v in ipairs(arr) do
     if v == val then
       return true
@@ -8,7 +10,7 @@ local function contains(arr, val)
 end
 
 -- function copied from https://www.reddit.com/r/neovim/comments/1b1sv3a/function_to_get_visually_selected_text/
-local function get_visual_selection()
+M.get_visual_selection = function()
   local _, srow, scol = unpack(vim.fn.getpos("v"))
   local _, erow, ecol = unpack(vim.fn.getpos("."))
 
@@ -47,10 +49,12 @@ local function get_visual_selection()
   end
 end
 
-local function is_empty(arg)
+M.is_empty = function(arg)
   return arg == nil or arg == ""
 end
 
-function string.starts(String, Start)
+M.string.starts = function(String, Start)
   return string.sub(String, 1, string.len(Start)) == Start
 end
+
+return M

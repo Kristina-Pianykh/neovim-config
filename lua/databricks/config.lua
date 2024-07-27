@@ -1,4 +1,6 @@
-local function parse_config(profile, config_path)
+local M = {}
+
+M.parse_config = function(profile, config_path)
   if config_path == nil then
     config_path = vim.fn.getenv("HOME") .. "/.databrickscfg"
   end
@@ -30,3 +32,5 @@ local function parse_config(profile, config_path)
   -- print(creds.token)
   return creds
 end
+
+return M
