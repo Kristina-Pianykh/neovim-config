@@ -1,8 +1,12 @@
 local M = {}
 
 M.parse_config = function(profile, config_path)
+  local default_config_path = vim.fn.getenv("HOME") .. "/.databrickscfg"
+
   if config_path == nil then
-    config_path = vim.fn.getenv("HOME") .. "/.databrickscfg"
+    config_path = vim.fn.expand(default_config_path)
+  else
+    config_path = vim.fn.expand(config_path)
   end
   -- print(profile)
 
@@ -31,6 +35,29 @@ M.parse_config = function(profile, config_path)
 
   -- print(creds.token)
   return creds
+end
+
+-- function M.merge_config(partial_config, latest_config)
+--     partial_config = partial_config or {}
+--     local config = latest_config or M.get_default_config()
+--     for k, v in pairs(partial_config) do
+--         if k == "settings" then
+--             config.settings = vim.tbl_extend("force", config.settings, v)
+--         elseif k == "default" then
+--             config.default = vim.tbl_extend("force", config.default, v)
+--         else
+--             config[k] = vim.tbl_extend("force", config[k] or {}, v)
+--         end
+--     end
+--     return config
+-- end
+
+function M.get_default_config()
+  local default_config = {
+    path = vim.fn.getenv("HOME") .. "/.databrickscfg",
+    timeout = 20, -- in seconds, for a job to finish
+  }
+  return default_config
 end
 
 return M
