@@ -7,6 +7,15 @@ return {
     config = function()
       require("lualine").setup({
         options = { theme = "rose-pine" },
+        sections = {
+          lualine_x = {
+            {
+              "searchcount",
+              maxcount = 9999,
+              timeout = 500,
+            },
+          },
+        },
       })
     end,
   },
