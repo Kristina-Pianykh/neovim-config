@@ -6,6 +6,7 @@ local plugins = {
   "tomtom/tcomment_vim",
   "rafcamlet/nvim-luapad",
   "nvim-lua/plenary.nvim",
+  "LunarVim/bigfile.nvim",
   require("plugins/tree-sitter"),
   -- syntax highliting and indentation support
   -- "sheerun/vim-polyglot",
