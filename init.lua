@@ -38,5 +38,9 @@ databricks.setup({
 })
 
 vim.keymap.set("v", "<leader>sp", function()
-  databricks.api.launch(databricks.creds, databricks.config.settings.cluster_id)
+  databricks:launch()
+end, { noremap = true })
+
+vim.keymap.set("n", "<leader>cl", function()
+  databricks:clear_context()
 end, { noremap = true })

@@ -20,15 +20,15 @@ M.COMMAND_STATUS = {
   error = "Error",
 }
 
-M.get_command_status = function(creds, cluster_id, context_id, command_id)
-  local url = "https://" .. creds.host .. "/api/1.2/commands/status"
+function M:get_command_status(command_id)
+  local url = "https://" .. self.creds.host .. "/api/1.2/commands/status"
   local header = {
-    Authorization = "Bearer " .. creds.token,
+    Authorization = "Bearer " .. self.creds.token,
     accept = "application/json",
   }
   local query = {
-    clusterId = cluster_id,
-    contextId = context_id,
+    clusterId = self.config.settings.cluster_id,
+    contextId = self.context_id,
     commandId = command_id,
   }
 
@@ -48,12 +48,7 @@ M.get_command_status = function(creds, cluster_id, context_id, command_id)
   end
 end
 
-M.wait_command_status_until_finished_or_error = function(
-  creds,
-  cluster_id,
-  context_id,
-  command_id
-)
+function M:wait_command_status_until_finished_or_error(command_id)
   local now = os.time()
   local timeout = 60 * 20 -- 20 seconds TODO: make configurable
   local deadline = now + timeout
@@ -66,8 +61,7 @@ M.wait_command_status_until_finished_or_error = function(
   local sleep = attempt
 
   while os.time() < deadline do
-    local ok, res =
-      pcall(M.get_command_status, creds, cluster_id, context_id, command_id)
+    local ok, res = pcall(M.get_command_status, self, command_id)
 
     if not ok then
       error(res)
@@ -94,17 +88,17 @@ M.wait_command_status_until_finished_or_error = function(
   error("Timed out after " .. timeout .. "s.")
 end
 
-M.execute_code = function(creds, cluster_id, context_id, command)
-  local url = "https://" .. creds.host .. "/api/1.2/commands/execute"
+function M:execute_code(command)
+  local url = "https://" .. self.creds.host .. "/api/1.2/commands/execute"
   local header = {
-    Authorization = "Bearer " .. creds.token,
+    Authorization = "Bearer " .. self.creds.token,
     accept = "application/json",
     content_type = "application/json",
   }
   local data = {
-    clusterId = cluster_id,
+    clusterId = self.config.settings.cluster_id,
     language = "python",
-    contextId = context_id,
+    contextId = self.context_id,
     command = command,
   }
 
@@ -127,13 +121,8 @@ M.execute_code = function(creds, cluster_id, context_id, command)
     )
   end
   local command_id = response_body.id
-  local ok, res = pcall(
-    M.wait_command_status_until_finished_or_error,
-    creds,
-    cluster_id,
-    context_id,
-    command_id
-  )
+  local ok, res =
+    pcall(M.wait_command_status_until_finished_or_error, self, command_id)
 
   if not ok then
     error(res)
@@ -142,7 +131,7 @@ M.execute_code = function(creds, cluster_id, context_id, command)
   end
 end
 
-M.clear_context = function(cluster_id)
+function M:clear_context()
   local path = CURR_SCRIPT_DIR .. "/.execution_context"
   local context_id = nil
 
@@ -156,13 +145,14 @@ M.clear_context = function(cluster_id)
 
   assert(context_id)
 
-  local url = "https://" .. creds.host .. "/api/1.2/contexts/destroy"
+  local url = "https://" .. self.creds.host .. "/api/1.2/contexts/destroy"
   local header = {
-    Authorization = "Bearer " .. creds.token,
+    Authorization = "Bearer " .. self.creds.token,
     accept = "application/json",
     content_type = "application/json",
   }
-  local data = { clusterId = cluster_id, contextId = context_id }
+  local data =
+    { clusterId = self.config.settings.cluster_id, contextId = context_id }
 
   local args = {
     headers = header,
@@ -176,9 +166,10 @@ M.clear_context = function(cluster_id)
   print(vim.inspect(response_body))
 
   os.remove(path)
+  self.context_id = nil
 end
 
-M.create_execution_context = function(creds, cluster_id)
+function M.create_execution_context(creds, cluster_id)
   local context_id = nil
 
   local url = "https://" .. creds.host .. "/api/1.2/contexts/create"
@@ -217,16 +208,19 @@ M.create_execution_context = function(creds, cluster_id)
   return context_id
 end
 
-M.get_context_status = function(creds, cluster_id, context_id)
+function M:get_context_status()
+  -- print(vim.inspect(self.creds))
+  -- print(vim.inspect(self.config))
+  -- print(vim.inspect(self))
   local url = "https://"
-    .. creds.host
+    .. self.creds.host
     .. "/api/1.2/contexts/status"
     .. "?clusterId="
-    .. cluster_id
+    .. self.config.settings.cluster_id
     .. "&contextId="
-    .. context_id
+    .. self.context_id
   local header = {
-    Authorization = "Bearer " .. creds.token,
+    Authorization = "Bearer " .. self.creds.token,
     accept = "application/json",
     content_type = "application/json",
   }
@@ -251,14 +245,14 @@ M.get_context_status = function(creds, cluster_id, context_id)
   return response_body.status
 end
 
-function M.write_cmd_to_buffer(buf, creds, cluster_id, context_id)
+function M:write_cmd_to_buffer()
   local lines = StringUtils.get_visual_selection()
   assert(lines)
   local command = table.concat(lines, "\n")
 
-  BufferUtils.write_visual_selection_to_buffer(buf, lines)
+  BufferUtils.write_visual_selection_to_buffer(self.buf, lines)
 
-  local ok, res = pcall(M.execute_code, creds, cluster_id, context_id, command)
+  local ok, res = pcall(M.execute_code, self, command)
 
   if not ok then
     error(res)
@@ -269,37 +263,50 @@ function M.write_cmd_to_buffer(buf, creds, cluster_id, context_id)
       print("Output: " .. res.data)
     end
 
-    BufferUtils.write_output_to_buffer(buf, res, table.getn(lines))
+    BufferUtils.write_output_to_buffer(self.buf, res, table.getn(lines))
     return res
   end
 end
 
-function M.create_context_if_not_exists(creds, cluster_id)
-  local context_id = nil
+function M:create_context_if_not_exists()
   local context_status = nil
 
   local f = io.open(CURR_SCRIPT_DIR .. "/.execution_context", "r")
   if f == nil then
-    local ok, res = pcall(M.create_execution_context, creds, cluster_id)
+    local ok, res = pcall(
+      M.create_execution_context,
+      self.creds,
+      self.config.settings.cluster_id
+    )
 
     if ok then
-      context_id = res
+      self.context_id = res
       context_status = M.CONTEXT_STATUS.running
     else
       error(res)
     end
-
-    assert(context_id)
   else
-    context_id = f:read("*all")
+    self.context_id = f:read("*all")
     f:close()
-    assert(context_id)
-    local ok, res = pcall(M.get_context_status, creds, cluster_id, context_id)
+    assert(self.context_id)
+    local ok, res = pcall(self.get_context_status, self)
 
     if ok then
       context_status = res
-    else
-      error(res)
+    else -- context is outdates or invalid. Recreate
+      self:clear_context()
+      local ok, res = pcall(
+        M.create_execution_context,
+        self.creds,
+        self.config.settings.cluster_id
+      )
+
+      if ok then
+        self.context_id = res
+        context_status = M.CONTEXT_STATUS.running
+      else
+        error(res)
+      end
     end
 
     assert(context_status)
@@ -308,11 +315,15 @@ function M.create_context_if_not_exists(creds, cluster_id)
       if context_status == M.CONTEXT_STATUS.pending then
         error("Execution context's status is pending. Try later...")
       else
-        clear_context()
-        local ok, res = pcall(M.create_execution_context, creds, cluster_id)
+        self:clear_context()
+        local ok, res = pcall(
+          M.create_execution_context,
+          self.creds,
+          self.config.settings.cluster_id
+        )
 
         if ok then
-          context_id = res
+          self.context_id = res
           context_status = M.CONTEXT_STATUS.running
         else
           error(res)
@@ -320,20 +331,39 @@ function M.create_context_if_not_exists(creds, cluster_id)
       end
     end
   end
-  print(context_id)
   print(context_status)
-  if not assert(context_id) then
+  if not assert(self.context_id) then
     error("Failed to create execution context.")
   end
-  return context_id
 end
 
-function M.launch(creds, cluster_id)
-  local context_id = M.create_context_if_not_exists(creds, cluster_id)
-  if not assert(context_id) then
-    error("Failed to create execution context.")
+function M:launch()
+  self:create_context_if_not_exists()
+
+  local lines = StringUtils.get_visual_selection()
+  assert(lines)
+  local command = table.concat(lines, "\n")
+
+  BufferUtils.write_visual_selection_to_buffer(vim.g.databricks_buf, lines)
+
+  local ok, res = pcall(M.execute_code, self, command)
+
+  if not ok then
+    error(res)
+  else
+    assert(type(res) == "table")
+
+    if res.data ~= nil then
+      print("Output: " .. res.data)
+    end
+
+    BufferUtils.write_output_to_buffer(
+      vim.g.databricks_buf,
+      res,
+      table.getn(lines)
+    )
+    return res
   end
-  M.write_cmd_to_buffer(vim.g.databricks_buf, creds, cluster_id, context_id)
 end
 
 return M

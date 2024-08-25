@@ -13,35 +13,22 @@ function Databricks:new()
     config = config,
     context_id = nil,
     creds = {},
-    api = Api,
+    -- api = Api,
     buf = nil,
   }, self)
 
+  -- Bind methods from Api to the Databricks instance
+  for k, v in pairs(Api) do
+    if type(v) == "function" then
+      -- Bind the function to the instance
+      databricks[k] = function(...)
+        return v(databricks, ...)
+      end
+    end
+  end
+
   return databricks
 end
-
--- function Databricks.write_cmd_to_buffer(_, buf, creds, context_id)
---   local lines = get_visual_selection()
---   assert(lines)
---   local command = table.concat(lines, "\n")
---
---   BufferUtils.write_visual_selection_to_buffer(buf, lines)
---
---   local ok, res = pcall(Api.execute_code, creds, context_id, command)
---
---   if not ok then
---     error(res)
---   else
---     assert(type(res) == "table")
---
---     if res.data ~= nil then
---       print("Output: " .. res.data)
---     end
---
---     BufferUtils.write_output_to_buffer(buf, res, table.getn(lines))
---     return res
---   end
--- end
 
 local databricks_instance = Databricks:new()
 
@@ -68,11 +55,6 @@ function Databricks.setup(self, partial_config)
     self.config.settings.profile,
     self.config.settings.path
   )
-  -- self:create_context_if_not_exists()
-
-  -- if not assert(self.context_id) then
-  --   error("Failed to create execution context.")
-  -- end
 
   vim.api.nvim_create_autocmd("VimEnter", {
     group = augroup,
@@ -85,16 +67,4 @@ function Databricks.setup(self, partial_config)
   return self
 end
 
--- function Databricks.create_buffer_on_load()
---   local augroup = vim.api.nvim_create_augroup("ScratchBuffer", { clear = true })
---
---   vim.api.nvim_create_autocmd("VimEnter", {
---     group = augroup,
---     desc = "Set a background buffer on load",
---     once = true,
---     callback = BufferUtils.create_buffer,
---   })
--- end
-
--- return { setup = setup }
 return databricks_instance
