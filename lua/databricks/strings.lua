@@ -53,8 +53,16 @@ M.is_empty = function(arg)
   return arg == nil or arg == ""
 end
 
-M.string.starts = function(String, Start)
+-- function string.starts(String, Start)
+--   return string.sub(String, 1, string.len(Start)) == Start
+-- end
+
+M.string_starts = function(String, Start)
   return string.sub(String, 1, string.len(Start)) == Start
 end
+
+-- M.string.starts = function(String, Start)
+--   return string.sub(String, 1, string.len(Start)) == Start
+-- end
 
 return M

@@ -28,4 +28,15 @@ local opts = {
 }
 
 require("lazy").setup(plugins, opts)
-require("plugins/databricks").setup()
+
+databricks = require("databricks")
+databricks.setup({
+  settings = {
+    profile = "DEFAULT",
+    cluster_id = "0503-152818-j2hhktid",
+  },
+})
+
+vim.keymap.set("v", "<leader>sp", function()
+  databricks.api.launch(databricks.creds, databricks.config.settings.cluster_id)
+end, { noremap = true })
