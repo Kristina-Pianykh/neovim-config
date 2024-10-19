@@ -15,12 +15,14 @@ local plugins = {
   require("plugins/nvim-surround"),
   require("plugins/nvim-autopairs"),
   require("plugins/lualine"),
-  require("plugins/copilot"),
+  -- require("plugins/copilot"),
   require("plugins/telescope"),
   require("plugins/lsp"),
   require("plugins/harpoon"),
   require("plugins/formatter"),
   require("plugins/markdown-preview"),
+  -- require("plugins/dbricks"),
+  require("plugins/databricks"),
 }
 
 local opts = {
@@ -28,19 +30,3 @@ local opts = {
 }
 
 require("lazy").setup(plugins, opts)
-
-databricks = require("databricks")
-databricks.setup({
-  settings = {
-    profile = "DEFAULT",
-    cluster_id = "0503-152818-j2hhktid",
-  },
-})
-
-vim.keymap.set("v", "<leader>sp", function()
-  databricks:launch()
-end, { noremap = true })
-
-vim.keymap.set("n", "<leader>cl", function()
-  databricks:clear_context()
-end, { noremap = true })
