@@ -12,6 +12,7 @@ return {
         "terraform",
         "java",
         "yaml",
+        "nix",
       },
       -- Autoinstall languages that are not installed
       auto_install = false,
