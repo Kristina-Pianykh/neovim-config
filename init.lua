@@ -22,7 +22,7 @@ local plugins = {
   require("plugins/formatter"),
   require("plugins/markdown-preview"),
   -- require("plugins/dbricks"),
-  require("plugins/databricks"),
+  -- require("plugins/databricks"),
 }
 
 local opts = {
