@@ -20,7 +20,8 @@ local plugins = {
   require("plugins/lsp"),
   require("plugins/harpoon"),
   require("plugins/formatter"),
-  require("plugins/markdown-preview"),
+  -- require("plugins/markdown-preview"),
+  require("plugins/peek"),
   -- require("plugins/dbricks"),
   -- require("plugins/databricks"),
 }
