@@ -22,6 +22,7 @@ local plugins = {
   require("plugins/formatter"),
   -- require("plugins/markdown-preview"),
   require("plugins/peek"),
+  require("plugins/yazi"),
   -- require("plugins/dbricks"),
   -- require("plugins/databricks"),
 }
