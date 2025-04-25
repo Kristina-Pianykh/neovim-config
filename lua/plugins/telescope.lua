@@ -36,7 +36,8 @@ return {
             "%.a",
           },
           layout_config = {
-            preview_width = 0.6,
+            preview_cutoff = 0,
+            preview_width = 0.8,
           },
           path_display = {
             "truncate",
@@ -47,6 +48,8 @@ return {
             find_command = {
               "rg",
               "--files",
+              "--max-count",
+              "0", -- 0 means no limit
             },
           },
           buffers = {
