@@ -37,13 +37,16 @@ return {
     end)
 
     local lua_opts = lsp_zero.nvim_lua_ls()
-    require("lspconfig").lua_ls.setup(lua_opts)
-    require("lspconfig").pyright.setup({})
-    require("lspconfig").terraformls.setup({
+    local lspconfig = require("lspconfig")
+    local configs = require("lspconfig/configs")
+
+    lspconfig.lua_ls.setup(lua_opts)
+    lspconfig.pyright.setup({})
+    lspconfig.terraformls.setup({
       filetypes = { "terraform" }, -- TODO: workaround to disable lsp support for *.tfvars files. Might be fixed in next nvim release https://github.com/hashicorp/terraform-ls/issues/1464
     })
-    require("lspconfig").tflint.setup({})
-    require("lspconfig").java_language_server.setup({
+    lspconfig.tflint.setup({})
+    lspconfig.java_language_server.setup({
       cmd = { "java-language-server" },
       handlers = java_handlers,
     })
@@ -52,7 +55,85 @@ return {
 
     lsp_zero.setup_servers({ "pyright" })
 
-    require("lspconfig").gopls.setup({})
+    local uv = vim.loop
+
+    -- Checks for existence of any config file in current working directory
+    local function get_golangci_config_path()
+      local config_files = {
+        ".golangci.yml",
+        ".golangci.yaml",
+        ".golangci.toml",
+        ".golangci.json",
+      }
+
+      local cwd = vim.fn.getcwd()
+      for _, file in ipairs(config_files) do
+        local path = cwd .. "/" .. file
+        local stat = uv.fs_stat(path)
+        if stat and stat.type == "file" then
+          return path
+        end
+      end
+      return nil
+    end
+    if not configs.golangcilsp then
+      configs.golangcilsp = {
+        default_config = {
+          cmd = { "golangci-lint-langserver" },
+          root_dir = lspconfig.util.root_pattern(".git", "go.mod"),
+          init_options = {
+            command = (function()
+              local config_path = get_golangci_config_path()
+              if config_path then
+                return {
+                  "golangci-lint",
+                  "run",
+                  "--config=" .. config_path,
+                  "--output.json.path",
+                  "stdout",
+                  "--show-stats=false",
+                  "--issues-exit-code=1",
+                }
+              else
+                return {
+                  "golangci-lint",
+                  "run",
+                  "--no-config",
+                  "--default",
+                  "standard",
+                  "--output.json.path",
+                  "stdout",
+                  "--show-stats=false",
+                  "--issues-exit-code=1",
+                }
+              end
+            end)(),
+          },
+        },
+      }
+    end
+    -- if not configs.golangcilsp then
+    --   configs.golangcilsp = {
+    --     default_config = {
+    --       cmd = { "golangci-lint-langserver" },
+    --       root_dir = lspconfig.util.root_pattern(".git", "go.mod"),
+    --       init_options = {
+    --         command = {
+    --           "golangci-lint",
+    --           "run",
+    --           "--output.json.path stdout",
+    --           "--show-stats=false",
+    --           "--issues-exit-code=1",
+    --         },
+    --       },
+    --     },
+    --   }
+    -- end
+    lspconfig.golangci_lint_ls.setup({
+      filetypes = { "go", "gomod" },
+    })
+
+    lspconfig.gopls.setup({})
     local autocmd = vim.api.nvim_create_autocmd
     autocmd("BufWritePre", {
       pattern = "*.go",
@@ -80,7 +161,7 @@ return {
     })
 
     -- require("lspconfig").clangd.setup({})
-    require("lspconfig").ccls.setup({
+    lspconfig.ccls.setup({
       init_options = {
         cache = {
           directory = ".ccls-cache",
