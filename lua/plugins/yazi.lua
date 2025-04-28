@@ -37,19 +37,20 @@ return {
       },
     },
     -- 👇 if you use `open_for_directories=true`, this is recommended
-    init = function()
-      -- More details: https://github.com/mikavilpas/yazi.nvim/issues/802
-      -- vim.g.loaded_netrw = 1
-      vim.g.loaded_netrwPlugin = 1
-      vim.api.nvim_create_autocmd("VimEnter", {
-        callback = function()
-          local filetype = vim.bo.filetype
-          if filetype ~= "gitcommit" then
-            vim.cmd("Yazi")
-          end
-        end,
-        -- command = "Yazi",
-      })
-    end,
+    -- init = function()
+    --   -- More details: https://github.com/mikavilpas/yazi.nvim/issues/802
+    --   -- vim.g.loaded_netrw = 1
+    --   vim.g.loaded_netrwPlugin = 1
+    --   -- vim.api.nvim_create_autocmd("VimEnter", {
+    --   --   callback = function()
+    --   --     local filetype = vim.bo.filetype
+    --   --     print(filetype)
+    --   --     if filetype ~= "gitcommit" or filetype ~= "zsh" then
+    --   --       vim.cmd("Yazi")
+    --   --     end
+    --   --   end,
+    --   --   -- command = "Yazi",
+    --   -- })
+    -- end,
   },
 }

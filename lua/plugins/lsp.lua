@@ -24,6 +24,7 @@ return {
     { "hrsh7th/cmp-nvim-lsp" },
     { "hrsh7th/nvim-cmp" },
     { "L3MON4D3/LuaSnip" },
+    { "b0o/schemastore.nvim" },
   },
 
   config = function()
@@ -39,6 +40,7 @@ return {
     local lua_opts = lsp_zero.nvim_lua_ls()
     local lspconfig = require("lspconfig")
     local configs = require("lspconfig/configs")
+    local schemastore = require("schemastore")
 
     lspconfig.lua_ls.setup(lua_opts)
     lspconfig.pyright.setup({})
@@ -134,6 +136,33 @@ return {
     })
 
     lspconfig.gopls.setup({})
+
+    --Enable (broadcasting) snippet capability for completion
+    local capabilities = vim.lsp.protocol.make_client_capabilities()
+    capabilities.textDocument.completion.completionItem.snippetSupport = true
+
+    local home = os.getenv("HOME")
+    lspconfig.yamlls.setup({
+      capabilities = capabilities,
+      settings = {
+        yaml = {
+          validate = true,
+          schemas = {
+            [home .. "/flink/helm-service-charts/workload/bundled.schema.json"] = "*/workload/values.yaml",
+          },
+        },
+      },
+    })
+
+    lspconfig.nixd.setup({})
+    -- require("lspconfig").nixd.setup({
+    --   cmd = { "nixd" },
+    --   filetypes = { "nix" },
+    --   root_markers = { "flake.nix", "git" },
+    -- })
+
+    require("lspconfig").gopls.setup({})
+
     local autocmd = vim.api.nvim_create_autocmd
     autocmd("BufWritePre", {
       pattern = "*.go",

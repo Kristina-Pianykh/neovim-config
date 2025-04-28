@@ -1,3 +1,9 @@
+vim.filetype.add({
+  pattern = {
+    [".*/zfunctions/.*"] = "zsh",
+  },
+})
+
 require("keymaps")
 require("lazy-bootstrap")
 
