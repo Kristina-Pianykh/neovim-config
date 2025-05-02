@@ -39,8 +39,6 @@ return {
 
     local lua_opts = lsp_zero.nvim_lua_ls()
     local lspconfig = require("lspconfig")
-    local configs = require("lspconfig/configs")
-    local schemastore = require("schemastore")
 
     lspconfig.lua_ls.setup(lua_opts)
     lspconfig.pyright.setup({})
@@ -57,86 +55,39 @@ return {
 
     lsp_zero.setup_servers({ "pyright" })
 
-    local uv = vim.loop
-
-    -- Checks for existence of any config file in current working directory
-    local function get_golangci_config_path()
-      local config_files = {
-        ".golangci.yml",
-        ".golangci.yaml",
-        ".golangci.toml",
-        ".golangci.json",
-      }
-
-      local cwd = vim.fn.getcwd()
-      for _, file in ipairs(config_files) do
-        local path = cwd .. "/" .. file
-        local stat = uv.fs_stat(path)
-        if stat and stat.type == "file" then
-          return path
-        end
-      end
-      return nil
-    end
-    if not configs.golangcilsp then
-      configs.golangcilsp = {
-        default_config = {
-          cmd = { "golangci-lint-langserver" },
-          root_dir = lspconfig.util.root_pattern(".git", "go.mod"),
-          init_options = {
-            command = (function()
-              local config_path = get_golangci_config_path()
-              if config_path then
-                return {
-                  "golangci-lint",
-                  "run",
-                  "--config=" .. config_path,
-                  "--output.json.path",
-                  "stdout",
-                  "--show-stats=false",
-                  "--issues-exit-code=1",
-                }
-              else
-                return {
-                  "golangci-lint",
-                  "run",
-                  "--no-config",
-                  "--default",
-                  "standard",
-                  "--output.json.path",
-                  "stdout",
-                  "--show-stats=false",
-                  "--issues-exit-code=1",
-                }
-              end
-            end)(),
-          },
-        },
-      }
-    end
-    -- if not configs.golangcilsp then
-    --   configs.golangcilsp = {
-    --     default_config = {
-    --       cmd = { "golangci-lint-langserver" },
-    --       root_dir = lspconfig.util.root_pattern(".git", "go.mod"),
-    --       init_options = {
-    --         command = {
-    --           "golangci-lint",
-    --           "run",
-    --           "--output.json.path stdout",
-    --           "--show-stats=false",
-    --           "--issues-exit-code=1",
-    --         },
-    --       },
-    --     },
-    --   }
-    -- end
-    lspconfig.golangci_lint_ls.setup({
-      filetypes = { "go", "gomod" },
-    })
-
     lspconfig.gopls.setup({})
 
+    -- Go lint
+    local custom_lint = vim.fn.getenv("FLINK_LINT")
+    local command
+    if custom_lint ~= vim.NIL then
+      if custom_lint == true then
+        local golangci_lint_path = vim.fn.getcwd() .. "/build/goflink-golint"
+        command = {
+          golangci_lint_path,
+          "run",
+          "--output.json.path=stdout",
+          "--show-stats=false",
+        }
+      end
+    else
+      command = {
+        "golangci-lint",
+        "run",
+        "--no-config",
+        "run",
+        "--output.json.path=stdout",
+        "--show-stats=false",
+      }
+    end
+    -- print(vim.inspect(command)) -- debug
+    lspconfig.golangci_lint_ls.setup({
+      init_options = {
+        command = command,
+      },
+    })
+
+    -- yaml schema validation
     --Enable (broadcasting) snippet capability for completion
     local capabilities = vim.lsp.protocol.make_client_capabilities()
     capabilities.textDocument.completion.completionItem.snippetSupport = true
