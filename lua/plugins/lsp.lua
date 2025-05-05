@@ -59,6 +59,7 @@ return {
 
     -- Go lint
     local custom_lint = vim.fn.getenv("FLINK_LINT")
+    -- print(custom_lint)
     local command
     if custom_lint ~= vim.NIL then
       if custom_lint == true then
@@ -103,6 +104,10 @@ return {
           },
         },
       },
+    })
+
+    lspconfig.jsonls.setup({
+      capabilities = capabilities,
     })
 
     lspconfig.nixd.setup({})
