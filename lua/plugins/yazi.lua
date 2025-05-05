@@ -8,6 +8,10 @@ return {
       -- https://github.com/folke/snacks.nvim
       "folke/snacks.nvim",
     },
+    -- Issue: https://github.com/mikavilpas/yazi.nvim/issues/919
+    -- Works with nvim >= 0.11.0
+    -- Remove version once nixpgs stable has updated it
+    version = "v10.3.0",
     keys = {
       -- 👇 in this section, choose your own keymappings!
       {
