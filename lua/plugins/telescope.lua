@@ -34,6 +34,8 @@ return {
             "%.class",
             "%.out",
             "%.a",
+            "%.devenv",
+            "%.direnv",
           },
           layout_config = {
             preview_cutoff = 0,
