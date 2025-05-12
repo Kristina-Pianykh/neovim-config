@@ -62,7 +62,7 @@ return {
     -- print(custom_lint)
     local command
     if custom_lint ~= vim.NIL then
-      if custom_lint == true then
+      if custom_lint == "true" then
         local golangci_lint_path = vim.fn.getcwd() .. "/build/goflink-golint"
         command = {
           golangci_lint_path,
@@ -72,6 +72,7 @@ return {
         }
       end
     else
+      print("custom_lint == true")
       command = {
         "golangci-lint",
         "run",
