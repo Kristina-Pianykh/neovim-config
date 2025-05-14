@@ -8,10 +8,6 @@ return {
       -- https://github.com/folke/snacks.nvim
       "folke/snacks.nvim",
     },
-    -- Issue: https://github.com/mikavilpas/yazi.nvim/issues/919
-    -- Works with nvim >= 0.11.0
-    -- Remove version once nixpgs stable has updated it
-    version = "v10.3.0",
     keys = {
       -- 👇 in this section, choose your own keymappings!
       {
@@ -45,16 +41,15 @@ return {
     --   -- More details: https://github.com/mikavilpas/yazi.nvim/issues/802
     --   -- vim.g.loaded_netrw = 1
     --   vim.g.loaded_netrwPlugin = 1
-    --   -- vim.api.nvim_create_autocmd("VimEnter", {
-    --   --   callback = function()
-    --   --     local filetype = vim.bo.filetype
-    --   --     print(filetype)
-    --   --     if filetype ~= "gitcommit" or filetype ~= "zsh" then
-    --   --       vim.cmd("Yazi")
-    --   --     end
-    --   --   end,
-    --   --   -- command = "Yazi",
-    --   -- })
+    --   vim.api.nvim_create_autocmd("VimEnter", {
+    --     callback = function()
+    --       local filetype = vim.bo.filetype
+    --       if filetype ~= "gitcommit" then
+    --         vim.cmd("Yazi")
+    --       end
+    --     end,
+    --     -- command = "Yazi",
+    --   })
     -- end,
   },
 }
