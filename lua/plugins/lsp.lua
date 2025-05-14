@@ -72,7 +72,6 @@ return {
         }
       end
     else
-      print("custom_lint == true")
       command = {
         "golangci-lint",
         "run",
