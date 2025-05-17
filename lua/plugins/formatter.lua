@@ -26,7 +26,7 @@ return {
             require("formatter.filetypes.terraform").terraformfmt,
           },
           nix = {
-            require("formatter.filetypes.nix").alejandra,
+            require("formatter.filetypes.nix").nixfmt,
           },
           java = {
             function()
