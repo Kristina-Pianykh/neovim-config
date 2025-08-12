@@ -100,7 +100,11 @@ return {
         yaml = {
           validate = true,
           schemas = {
+            -- ["https://raw.githubusercontent.com/goflink/helm-service-charts/refs/heads/main/workload/bundled.schema.json?token=GHSAT0AAAAAADHOSNSMIWFRCCUPJKHQFTHQ2EAW2PQ"] = "*/workload/values.yaml",
+            -- ["https://raw.githubusercontent.com/goflink/helm-service-charts/refs/heads/main/cloudresources/bundled.schema.json?token=GHSAT0AAAAAADHOSNSMZ2DBW3SVBMARBXK42EAW22A"] = "*/infra/values.yaml",
+            [home .. "/flink/service-datadog-schema/schema/dd-schema-v3-0+flink.json"] = "*/service.datadog.yaml",
             [home .. "/flink/helm-service-charts/workload/bundled.schema.json"] = "*/workload/values.yaml",
+            [home .. "/flink/helm-service-charts/cloudresources/bundled.schema.json"] = "*/infra/values.yaml",
           },
         },
       },
