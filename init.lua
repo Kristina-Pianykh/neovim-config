@@ -36,4 +36,6 @@ local opts = {
   lockfile = vim.fn.stdpath("config") .. "/lazy-lock.json", -- lockfile generated after running update.
 }
 
+-- REMOVE AFTER MIGRATING TO NEOVIM LSP
+vim.deprecate = function() end
 require("lazy").setup(plugins, opts)
