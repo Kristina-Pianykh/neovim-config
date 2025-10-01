@@ -8,7 +8,6 @@ return {
       -- https://github.com/folke/snacks.nvim
       "folke/snacks.nvim",
     },
-    version = "v10.3.0",
     keys = {
       -- 👇 in this section, choose your own keymappings!
       {
