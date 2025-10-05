@@ -17,6 +17,7 @@ return {
         "gomod",
         "gosum",
         "json",
+        "css",
       },
       -- Autoinstall languages that are not installed
       auto_install = false,
