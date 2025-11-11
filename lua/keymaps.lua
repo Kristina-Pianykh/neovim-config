@@ -59,29 +59,6 @@ vim.api.nvim_create_autocmd("TextYankPost", {
   end,
 })
 
-vim.api.nvim_create_autocmd("LspAttach", {
-  desc = "Define LSP specific keymaps",
-  group = vim.api.nvim_create_augroup("lsp", { clear = true }),
-  callback = function(args)
-    local opts = { buffer = args.buf }
-    vim.keymap.set("n", "<leader>rn", function()
-      vim.lsp.buf.rename()
-    end, opts)
-    vim.keymap.set("n", "[d", function()
-      vim.diagnostic.goto_next()
-    end, opts)
-    vim.keymap.set("n", "]d", function()
-      vim.diagnostic.goto_prev()
-    end, opts)
-    vim.keymap.set("n", "gs", function()
-      vim.lsp.buf.signature_help()
-    end, opts)
-    vim.keymap.set("n", "<leader>a", function()
-      vim.lsp.buf.code_action()
-    end, opts)
-  end,
-})
-
 vim.api.nvim_create_autocmd("BufWritePre", {
   group = vim.api.nvim_create_augroup("strip_whitespaces", { clear = true }),
   command = ":%s/s+$//e",

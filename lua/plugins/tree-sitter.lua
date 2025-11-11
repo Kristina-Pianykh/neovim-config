@@ -18,6 +18,8 @@ return {
         "gosum",
         "json",
         "css",
+        "kotlin",
+        "helm",
       },
       -- Autoinstall languages that are not installed
       auto_install = false,

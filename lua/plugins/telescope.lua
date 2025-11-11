@@ -26,6 +26,7 @@ return {
     config = function()
       require("telescope").setup({
         defaults = {
+          layout_strategy = "vertical",
           -- People say it's slow
           -- rather use rg?
           -- https://github.com/nvim-telescope/telescope.nvim/issues/522#issuecomment-777384452
@@ -38,8 +39,9 @@ return {
             "%.direnv",
           },
           layout_config = {
-            preview_cutoff = 0,
-            preview_width = 0.8,
+            height = 0.9,
+            -- preview_cutoff = 0,
+            preview_height = 0.7,
           },
           path_display = {
             "truncate",
@@ -112,8 +114,18 @@ return {
         builtin.lsp_references,
         { desc = "Lists LSP references for word under the cursor" }
       )
-      -- vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
-      -- vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
+      vim.keymap.set(
+        "n",
+        "gi",
+        builtin.lsp_implementations,
+        { desc = "Lists LSP implementations for word under the cursor" }
+      )
+      vim.keymap.set(
+        "n",
+        "<leader>sd",
+        builtin.diagnostics,
+        { desc = "[S]earch [D]iagnostics" }
+      )
       vim.keymap.set(
         "n",
         "<leader>sr",
