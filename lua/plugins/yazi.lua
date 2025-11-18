@@ -2,11 +2,10 @@ return {
   ---@type LazySpec
   {
     "mikavilpas/yazi.nvim",
+    version = "*", -- use the latest stable version
     event = "VeryLazy",
     dependencies = {
-      -- check the installation instructions at
-      -- https://github.com/folke/snacks.nvim
-      "folke/snacks.nvim",
+      { "nvim-lua/plenary.nvim", lazy = true },
     },
     keys = {
       -- 👇 in this section, choose your own keymappings!
@@ -36,20 +35,12 @@ return {
         show_help = "<f1>",
       },
     },
-    -- 👇 if you use `open_for_directories=true`, this is recommended
+    -- -- 👇 if you use `open_for_directories=true`, this is recommended
     -- init = function()
+    --   -- mark netrw as loaded so it's not loaded at all.
+    --   --
     --   -- More details: https://github.com/mikavilpas/yazi.nvim/issues/802
-    --   -- vim.g.loaded_netrw = 1
     --   vim.g.loaded_netrwPlugin = 1
-    --   vim.api.nvim_create_autocmd("VimEnter", {
-    --     callback = function()
-    --       local filetype = vim.bo.filetype
-    --       if filetype ~= "gitcommit" then
-    --         vim.cmd("Yazi")
-    --       end
-    --     end,
-    --     -- command = "Yazi",
-    --   })
     -- end,
   },
 }
