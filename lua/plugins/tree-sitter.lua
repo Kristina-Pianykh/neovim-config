@@ -21,6 +21,7 @@ return {
         "css",
         "kotlin",
         "helm",
+        "javascript",
       },
       -- Autoinstall languages that are not installed
       auto_install = false,
