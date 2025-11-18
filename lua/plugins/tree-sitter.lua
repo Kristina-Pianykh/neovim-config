@@ -35,6 +35,16 @@ return {
       indent = { enable = true, disable = { "python" } },
     },
     config = function(_, opts)
+      vim.filetype.add({
+        extension = {
+          gotmpl = "gotmpl",
+        },
+        pattern = {
+          [".*/templates/.*%.tpl"] = "helm",
+          [".*/templates/.*%.ya?ml"] = "helm",
+          ["helmfile.*%.ya?ml"] = "helm",
+        },
+      })
       -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
 
       ---@diagnostic disable-next-line: missing-fields
