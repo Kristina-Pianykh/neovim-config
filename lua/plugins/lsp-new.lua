@@ -407,6 +407,7 @@ return {
         "golangci_lint_ls",
         "yamlls",
         "helm_ls",
+        "vtsls",
       })
     end,
   },
