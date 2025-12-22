@@ -26,6 +26,7 @@ local plugins = {
   require("plugins/telescope"),
   -- require("plugins/lsp"),
   require("plugins/lsp-new"),
+  require("plugins/blink"),
   require("plugins/harpoon"),
   require("plugins/formatter"),
   require("plugins/render-markdown"),
