@@ -37,6 +37,7 @@ return {
             "%.a",
             "%.devenv",
             "%.direnv",
+            "coverage.txt",
           },
           layout_config = {
             height = 0.9,
