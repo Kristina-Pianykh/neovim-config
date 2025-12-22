@@ -22,6 +22,8 @@ return {
         "kotlin",
         "helm",
         "javascript",
+        "typescript",
+        "svelte"
       },
       -- Autoinstall languages that are not installed
       auto_install = false,
