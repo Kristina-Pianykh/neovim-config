@@ -22,6 +22,7 @@ return {
       "saghen/blink.cmp",
       {
         "qvalentin/helm-ls.nvim",
+        dependencies = { "nvim-treesitter/nvim-treesitter" },
         ft = "helm",
         opts = {
           conceal_templates = {
