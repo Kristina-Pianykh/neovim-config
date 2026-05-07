@@ -23,7 +23,8 @@ return {
         "helm",
         "javascript",
         "typescript",
-        "svelte"
+        "svelte",
+        "sql",
       },
       -- Autoinstall languages that are not installed
       auto_install = false,
